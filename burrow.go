@@ -191,7 +191,7 @@ func (b *Burrow) debugLogConn(conn int64, format string, args ...interface{}) {
 		if b.DebugLog != nil {
 			b.DebugLog.Printf("[%d]: %s", conn, le)
 		} else {
-			log.Print("[%d]: %s", conn, le)
+			log.Printf("[%d]: %s", conn, le)
 		}
 	}
 }
