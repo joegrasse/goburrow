@@ -551,14 +551,13 @@ var shutdownPollInterval = 500 * time.Millisecond
 func (b *Burrow) StopGraceful() error {
 	var err error
 
-	b.mux.Lock()
+	b.debugLog("Stopping Burrow")
+
 	// check if we are already stopping
 	if b.stoppedStarted() {
 		b.mux.Unlock()
 		return fmt.Errorf("Burrow is shutting down or has been stopped")
 	}
-
-	b.debugLog("Stopping Burrow")
 
 	b.setState(StateShuttingDown)
 	defer b.setState(StateStopped)
@@ -568,8 +567,6 @@ func (b *Burrow) StopGraceful() error {
 		err = b.listener.Close(true)
 	}
 
-	b.mux.Unlock()
-
 	ticker := time.NewTicker(shutdownPollInterval)
 	defer ticker.Stop()
 
@@ -577,7 +574,6 @@ func (b *Burrow) StopGraceful() error {
 
 	for {
 		if b.Connections() == 0 {
-			err = b.listener.Close(true)
 			b.debugLog("All connections closed")
 			b.closeDoneChan()
 			return err
