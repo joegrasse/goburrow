@@ -516,14 +516,12 @@ func (b *Burrow) stoppedStarted() bool {
 func (b *Burrow) Stop() error {
 	var err error
 
-	b.mux.Lock()
+	b.debugLog("Stopping Burrow")
+
 	// check if we are already stopping
 	if b.stoppedStarted() {
-		b.mux.Unlock()
 		return fmt.Errorf("Burrow is shutting down or has been stopped")
 	}
-
-	b.debugLog("Stopping Burrow")
 
 	b.setState(StateShuttingDown)
 	defer b.setState(StateStopped)
@@ -533,8 +531,7 @@ func (b *Burrow) Stop() error {
 		err = b.listener.Close(true)
 	}
 
-	b.signalCloseLocked()
-	b.mux.Unlock()
+	b.signalClose()
 
 	b.debugLog("Waiting for all connections to close")
 	b.waitConnClosed()
@@ -610,8 +607,12 @@ func (b *Burrow) setActiveChan(c chan struct{}, conn net.Conn, add bool, connNum
 	}
 }
 
-func (b *Burrow) signalCloseLocked() {
+func (b *Burrow) signalClose() {
 	b.debugLog("Signaling active connections to close")
+
+	b.mux.Lock()
+	defer b.mux.Unlock()
+
 	for c := range b.activeConn {
 		b.debugLog("Sending signal")
 		c <- struct{}{}
