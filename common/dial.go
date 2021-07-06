@@ -110,23 +110,24 @@ func DialServer(server ep.Endpoint, options ...option) (*ssh.Client, error) {
 			return nil, err
 		}
 
-		c.log("Creating SSH connection to server: %s", server)
+		c.log("Creating SSH connection to server through proxy: %s", server)
+	} else {
+		conn, err = net.DialTimeout("tcp", server.String(), server.GetSSHConfig().Timeout)
 
-		// create a new ssh client
-		c, chans, reqs, err := ssh.NewClientConn(conn, server.String(), server.GetSSHConfig())
 		if err != nil {
-			return nil, fmt.Errorf("ssh connection error: %s", err)
+			return nil, fmt.Errorf("server dial error: %s", err)
 		}
 
-		serverConn = ssh.NewClient(c, chans, reqs)
-	} else {
 		c.log("Creating SSH connection to server: %s", server)
-		serverConn, err = ssh.Dial("tcp", server.String(), server.GetSSHConfig())
 	}
 
+	// create a new ssh client
+	sshConn, chans, reqs, err := ssh.NewClientConn(conn, server.String(), server.GetSSHConfig())
 	if err != nil {
-		return nil, fmt.Errorf("server dial error: %s", err)
+		return nil, fmt.Errorf("ssh connection error: %s", err)
 	}
+
+	serverConn = ssh.NewClient(sshConn, chans, reqs)
 
 	c.log("SSH connection created: %s", server)
 
