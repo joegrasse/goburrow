@@ -726,9 +726,9 @@ func (b *Burrow) burrow(listenerConn net.Conn, connNumber int64, done chan struc
 		if result.err != nil && result.bytes > 0 {
 			// had a successful connect
 			return true, result.errOrigin, result.err
-		} else if result.bytes == 0 { // check for no bytes copied
+		} else if result.err != nil { // check for error
 			// didn't have a successful connect
-			return false, result.errOrigin, fmt.Errorf("Unable to communicate over dialed connection")
+			return false, result.errOrigin, fmt.Errorf("Unable to communicate over dialed connection: %s", result.err)
 		}
 
 		// no error
