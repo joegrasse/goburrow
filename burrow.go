@@ -324,10 +324,12 @@ func (b *Burrow) Start() error {
 			state := b.GetState()
 			if state == StateStopped || state == StateShuttingDown {
 				<-b.getDoneChan()
+				b.infoLog("Burrow Stopped")
 				return nil
 			}
 
 			b.setState(StateStopped)
+			b.infoLog("Burrow Stopped")
 			return err
 		}
 
